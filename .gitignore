@@ -1,0 +1,12 @@
+**/disco
+target
+tmp.discovery
+**/.idea
+**/cmake-*
+**/CMakeLists.txt
+*.iml
+**/node_modules
+**/*.gogen*
+**/*.swp
+.vscode
+.DS_Store
