@@ -151,9 +151,11 @@ func Login() gin.HandlerFunc {
 }
 
 // ProductViewerAdmin
-// func ProductViewerAdmin() gin.HandlerFunc {
-
-// }
+func ProductViewerAdmin() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		
+	}
+}
 
 // SearchProduct
 func SearchProduct() gin.HandlerFunc {
@@ -211,7 +213,7 @@ func SearchProductByQuery() gin.HandlerFunc {
 
 		searchQueryDB, err := ProductCollection.Find(ctx, bson.M{"product_name": bson.M{"$regex": queryParam}})
 		if err != nil {
-			c.IndentedJSON(404, "something went while fetching the data")
+			c.IndentedJSON(404, "something went wrong while fetching the data")
 			return
 		}
 
