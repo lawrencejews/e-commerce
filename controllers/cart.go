@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/lawrencejews/e-commerce/database"
+	"github.com/lawrencejews/e-commerce/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -101,10 +102,59 @@ func (app *Application) RemoveItem() gin.HandlerFunc {
 	}
 }
 
-// Getting an item from a cart
+// Getting an item from a cart using MongoDB Aggregation approach
 func (app *Application) GetItemFromCart() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		user_id := c.Query("id")
 
+		if user_id == "" {
+			c.Header("Content-Type", "application/json")
+			c.JSON(http.StatusNotFound, gin.H{"error": "invalid"})
+			c.Abort()
+			return
+		}
+
+		userOne_id, _ := primitive.ObjectIDFromHex(user_id)
+
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		// Finding the User and create an aggregation function
+		var filledcart models.User
+		err := UserCollection.FindOne(ctx, bson.D{primitive.E{Key: "_id", Value: userOne_id}}).Decode(&filledcart)
+
+		if err != nil {
+			log.Println(err)
+			c.IndentedJSON(500, "not found")
+			return
+		}
+
+		// Filter match section
+		filter_match := bson.D{{Key: "$match", Value: bson.D{primitive.E{Key: "_id", Value: userOne_id}}}}
+
+		// Unwind section to locates cart-items for the user
+		unwind := bson.D{{Key: "$unwind", Value: bson.D{primitive.E{Key: "path", Value: "$usercart"}}}}
+
+		// Grouping
+		grouping := bson.D{{Key: "$group", Value: bson.D{primitive.E{Key: "id", Value: "$_id"}, {Key: "total", Value: bson.D{primitive.E{Key: "$sum", Value: "$usercart.price"}}}}}}
+
+		pointCursor, err := UserCollection.Aggregate(ctx, mongo.Pipeline{filter_match, unwind, grouping})
+
+		if err != nil {
+			log.Println(err)
+		}
+
+		var listing []bson.M
+		if err = pointCursor.All(ctx, &listing); err != nil {
+			log.Println(err)
+			c.AbortWithStatus(http.StatusInternalServerError)
+		}
+
+		for _, json := range listing {
+			c.IndentedJSON(200, json["total"])
+			c.IndentedJSON(200, filledcart.UserCart)
+		}
+		ctx.Done()
 	}
 }
 
