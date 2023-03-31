@@ -61,7 +61,7 @@ func RemoveCartItem(ctx context.Context, prodCollection, userCollection *mongo.C
 		return ErrUserIdIsNotValid
 	}
 
-	filter := bson.D(primitive.E{Key: "_id", Value: id})
+	filter := bson.D{primitive.E{Key: "_id", Value: id}}
 
 	update := bson.M{"$pull": bson.M{"usercart": bson.M{"_id": productID}}}
 

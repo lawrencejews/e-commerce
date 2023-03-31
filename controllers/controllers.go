@@ -120,7 +120,9 @@ func Login() gin.HandlerFunc {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
 
+		var founduser models.User
 		var user models.User
+
 		if err := c.BindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err})
 			return
@@ -143,18 +145,34 @@ func Login() gin.HandlerFunc {
 			return
 		}
 
-		token, refreshToken, _ := generate.TokenGenerator(*founderuser.Email, *founderuser.First_Name, *founderuser.Last_Name, *founderuser.User_ID)
+		token, refreshToken, _ := generate.TokenGenerator(*founduser.Email, *founduser.First_Name, *founduser.Last_Name, founduser.User_ID)
 		defer cancel()
 
-		generate.UpdateAllTokens(token, refreshToken, founderuser.User_ID)
+		generate.UpdateAllTokens(token, refreshToken, founduser.User_ID)
 		c.JSON(http.StatusFound, founduser)
 	}
 }
 
 // ProductViewerAdmin
 func ProductViewerAdmin() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100 * time.Second)
+		var products models.Product 
+		defer cancel()
+
+		if err := c.BindJSON(&products); err != nil{
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		} 
+
+		products.Product_ID = primitive.NewObjectID()
+		_, anyerr := ProductCollection.InsertOne(ctx, products)
+		if  anyerr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "not inserted"})
+			return
+		}
+		defer cancel()
+		c.JSON(http.StatusOK, "Added successfully")
 	}
 }
 
