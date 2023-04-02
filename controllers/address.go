@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -48,7 +47,7 @@ func AddAddress() gin.HandlerFunc {
 
 		var addressInfo []bson.M
 		if err = pointCursor.All(ctx, &addressInfo); err != nil {
-			log.Panic(err)
+			panic(err)
 		}
 
 		var size int32
@@ -88,7 +87,7 @@ func EditHomeAddress() gin.HandlerFunc {
 
 		userOne_id, err := primitive.ObjectIDFromHex(user_id)
 		if err != nil {
-			c.IndentedJSON(500, "Internal Server Error")
+			c.IndentedJSON(500, err)
 		}
 
 		var editaddress models.Address

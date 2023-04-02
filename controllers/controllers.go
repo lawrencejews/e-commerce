@@ -172,7 +172,7 @@ func ProductViewerAdmin() gin.HandlerFunc {
 			return
 		}
 		defer cancel()
-		c.JSON(http.StatusOK, "Added successfully")
+		c.JSON(http.StatusOK, "Successfully added our product admin")
 	}
 }
 
@@ -232,7 +232,7 @@ func SearchProductByQuery() gin.HandlerFunc {
 
 		searchQueryDB, err := ProductCollection.Find(ctx, bson.M{"product_name": bson.M{"$regex": queryParam}})
 		if err != nil {
-			c.IndentedJSON(404, "something went wrong while fetching the data")
+			c.IndentedJSON(404, "Something went wrong while fetching the data")
 			return
 		}
 

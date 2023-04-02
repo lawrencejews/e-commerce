@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/lawrencejews/e-commerce/database"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -51,9 +51,9 @@ func TokenGenerator(email string, firstname string, lastname string, uid string)
 		return "", "", err
 	}
 
-	refreshtoken, err := jwt.NewWithClaims(jwt.SigningMethodES384, refreshclaims).SignedString([]byte(SECRET_KEY))
+	refreshtoken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshclaims).SignedString([]byte(SECRET_KEY))
 	if err != nil {
-		log.Panic(err)
+		log.Panicln(err)
 		return
 	}
 	return token, refreshtoken, err
